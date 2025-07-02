@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: login.php');
+    exit();
+}
 // Reset all game session variables
 unset($_SESSION['game_started']);
 unset($_SESSION['current_question']);
@@ -22,6 +26,7 @@ unset($_SESSION['q']);
         <p class="intro-text">Think you're smart? Try answering all the questions to win $1,000,000.</p>
         <a href="question.php" class="start-btn">Start Game</a>
         <a href="howtoplay.php" class="start-btn" style="background:#4444ff; color:#fff; margin-top:15px;">How to Play</a>
+        <a href="logout.php" class="start-btn" style="background:#ff4444; color:#fff; margin-top:15px;">Logout</a>
     </div>
 </body>
 </html>

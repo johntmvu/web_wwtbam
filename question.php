@@ -1,5 +1,10 @@
 <?php
 session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: login.php');
+    exit();
+}
+
 include 'questions.php';
 
 // Initialize game state ONLY when starting completely fresh (no session data exists at all)
