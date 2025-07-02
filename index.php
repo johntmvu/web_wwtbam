@@ -26,7 +26,8 @@ unset($_SESSION['q']);
         <p class="intro-text">Think you're smart? Try answering all the questions to win $1,000,000.</p>
         <a href="question.php" class="start-btn">Start Game</a>
         <a href="howtoplay.php" class="start-btn" style="background:#4444ff; color:#fff; margin-top:15px;">How to Play</a>
-        <a href="logout.php" class="start-btn" style="background:#ff4444; color:#fff; margin-top:15px;">Logout</a>
+        <a href="leaderboard.php" class="start-btn" style="background:#00ccff; color:#000; margin-top:15px;">Leaderboard</a>
+        <a href="logout.php" class="start-btn" style="background:#ff4444; color:#fff;  display: block; width: 200px; margin: 2em auto;">Logout</a>
     </div>
 </body>
 </html>
