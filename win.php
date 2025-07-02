@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['username'])) {
+    header('Location: login.php');
+    exit();
+}
 $total_winnings = isset($_SESSION['total_winnings']) ? $_SESSION['total_winnings'] : 0;
 ?>
 <!DOCTYPE html>
