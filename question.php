@@ -12,10 +12,15 @@ if (!isset($_SESSION['game_started']) && !isset($_SESSION['current_question']) &
     $_SESSION['game_started'] = true;
     $_SESSION['current_question'] = 0;
     $_SESSION['total_winnings'] = 0;
+    // Reset lifelines for new game
+    $_SESSION['hint_used'] = false;
+    $_SESSION['audience_used'] = false;
+    $_SESSION['phone_used'] = false;
+    unset($_SESSION['hidden_answers']);
+    unset($_SESSION['audience_poll']);
+    unset($_SESSION['phone_friend']);
 } else {
-    // Ensure all required session variables exist
-    if (!isset($_SESSION['current_question'])) $_SESSION['current_question'] = 0;
-    if (!isset($_SESSION['total_winnings'])) $_SESSION['total_winnings'] = 0;
+    // Ensure all required session variables exist, but DON'T reset existing values
     if (!isset($_SESSION['game_started'])) $_SESSION['game_started'] = true;
 }
 
@@ -25,9 +30,15 @@ if ($_SESSION['current_question'] >= count($questions)) {
     exit();
 }
 
-// Initialize 50/50 hint tracking if not set
+// Initialize lifeline tracking if not set
 if (!isset($_SESSION['hint_used'])) {
     $_SESSION['hint_used'] = false;
+}
+if (!isset($_SESSION['audience_used'])) {
+    $_SESSION['audience_used'] = false;
+}
+if (!isset($_SESSION['phone_used'])) {
+    $_SESSION['phone_used'] = false;
 }
 
 // Handle 50/50 hint request
@@ -59,6 +70,90 @@ if (isset($_POST['use_hint']) && !$_SESSION['hint_used']) {
     $_SESSION['hidden_answers'] = $hide_indices;
 }
 
+// Handle Ask the Audience request
+if (isset($_POST['use_audience']) && !$_SESSION['audience_used']) {
+    $_SESSION['audience_used'] = true;
+    
+    $current_question = $questions[$_SESSION['current_question']];
+    $correct_answer = $current_question['answer'];
+    
+    // Generate audience poll percentages
+    $percentages = [0, 0, 0, 0];
+    
+    // Give correct answer a higher probability (40-70%)
+    $correct_percentage = rand(40, 70);
+    $percentages[$correct_answer] = $correct_percentage;
+    
+    // Distribute remaining percentage among other answers
+    $remaining = 100 - $correct_percentage;
+    $other_answers = [];
+    for ($i = 0; $i < 4; $i++) {
+        if ($i != $correct_answer) {
+            $other_answers[] = $i;
+        }
+    }
+    
+    // Randomly distribute remaining percentage
+    for ($i = 0; $i < count($other_answers) - 1; $i++) {
+        $max_remaining = $remaining - (count($other_answers) - $i - 1);
+        $percentage = rand(1, max(1, $max_remaining));
+        $percentages[$other_answers[$i]] = $percentage;
+        $remaining -= $percentage;
+    }
+    $percentages[$other_answers[count($other_answers) - 1]] = $remaining;
+    
+    $_SESSION['audience_poll'] = $percentages;
+}
+
+// Handle Phone a Friend request
+if (isset($_POST['use_phone']) && !$_SESSION['phone_used']) {
+    $_SESSION['phone_used'] = true;
+    
+    $current_question = $questions[$_SESSION['current_question']];
+    $correct_answer = $current_question['answer'];
+    
+    // Array of friend names and their characteristics
+    $friends = [
+        ['name' => 'Alex', 'confidence' => 'high', 'accuracy' => 85],
+        ['name' => 'Sarah', 'confidence' => 'medium', 'accuracy' => 75],
+        ['name' => 'Mike', 'confidence' => 'high', 'accuracy' => 80],
+        ['name' => 'Emma', 'confidence' => 'low', 'accuracy' => 65],
+        ['name' => 'David', 'confidence' => 'medium', 'accuracy' => 70],
+        ['name' => 'Lisa', 'confidence' => 'high', 'accuracy' => 90]
+    ];
+    
+    // Randomly select a friend
+    $friend = $friends[array_rand($friends)];
+    
+    // Determine if friend gives correct answer based on their accuracy
+    $gives_correct = (rand(1, 100) <= $friend['accuracy']);
+    $suggested_answer = $gives_correct ? $correct_answer : rand(0, 3);
+    
+    // Generate response based on confidence level
+    $confidence_phrases = [
+        'high' => ['I\'m pretty sure it\'s', 'I think it\'s definitely', 'I\'m confident it\'s', 'I believe it\'s'],
+        'medium' => ['I think it might be', 'I\'m fairly sure it\'s', 'I believe it could be', 'My guess would be'],
+        'low' => ['I\'m not sure, but maybe', 'I think it could be', 'I\'m guessing it\'s', 'I\'m not certain, but']
+    ];
+    
+    $phrase = $confidence_phrases[$friend['confidence']][array_rand($confidence_phrases[$friend['confidence']])];
+    $answer_letter = chr(65 + $suggested_answer);
+    
+    $friend_response = $phrase . ' ' . $answer_letter . '.';
+    
+    // Add some extra uncertainty for low confidence
+    if ($friend['confidence'] === 'low') {
+        $uncertainty = [' But I\'m really not sure.', ' Don\'t quote me on that!', ' That\'s just a wild guess.'];
+        $friend_response .= $uncertainty[array_rand($uncertainty)];
+    }
+    
+    $_SESSION['phone_friend'] = [
+        'name' => $friend['name'],
+        'response' => $friend_response,
+        'confidence' => $friend['confidence']
+    ];
+}
+
 $current_question = $questions[$_SESSION['current_question']];
 $question_number = $_SESSION['current_question'] + 1;
 ?>
@@ -84,18 +179,82 @@ $question_number = $_SESSION['current_question'] + 1;
             <?php echo $current_question['question']; ?>
         </div>
 
-        <!-- 50/50 Hint Button -->
-        <?php if (!$_SESSION['hint_used']): ?>
-            <div class="hint-container">
-                <form method="post" style="display: inline;">
-                    <button type="submit" name="use_hint" class="hint-btn">
-                        50:50 Hint
-                    </button>
-                </form>
+        <!-- Lifelines Container -->
+        <div class="lifelines-container">
+            <!-- 50/50 Hint Button -->
+            <?php if (!$_SESSION['hint_used']): ?>
+                <div class="lifeline-item">
+                    <form method="post" style="display: inline;">
+                        <button type="submit" name="use_hint" class="hint-btn">
+                            50:50
+                        </button>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="lifeline-item">
+                    <span class="lifeline-used">50:50 Used</span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Ask the Audience Button -->
+            <?php if (!$_SESSION['audience_used']): ?>
+                <div class="lifeline-item">
+                    <form method="post" style="display: inline;">
+                        <button type="submit" name="use_audience" class="audience-btn">
+                            Ask Audience
+                        </button>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="lifeline-item">
+                    <span class="lifeline-used">Audience Used</span>
+                </div>
+            <?php endif; ?>
+
+            <!-- Phone a Friend Button -->
+            <?php if (!$_SESSION['phone_used']): ?>
+                <div class="lifeline-item">
+                    <form method="post" style="display: inline;">
+                        <button type="submit" name="use_phone" class="phone-btn">
+                            Phone Friend
+                        </button>
+                    </form>
+                </div>
+            <?php else: ?>
+                <div class="lifeline-item">
+                    <span class="lifeline-used">Phone Used</span>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Audience Poll Results -->
+        <?php if (isset($_SESSION['audience_poll'])): ?>
+            <div class="audience-poll">
+                <h3>Audience Poll Results:</h3>
+                <div class="poll-results">
+                    <?php 
+                    $poll = $_SESSION['audience_poll'];
+                    for ($i = 0; $i < 4; $i++): 
+                    ?>
+                        <div class="poll-bar">
+                            <div class="poll-label"><?php echo chr(65 + $i); ?>:</div>
+                            <div class="poll-bar-container">
+                                <div class="poll-bar-fill" style="width: <?php echo $poll[$i]; ?>%"></div>
+                                <span class="poll-percentage"><?php echo $poll[$i]; ?>%</span>
+                            </div>
+                        </div>
+                    <?php endfor; ?>
+                </div>
             </div>
-        <?php else: ?>
-            <div class="hint-container">
-                <span class="hint-used">50:50 Hint Used</span>
+        <?php endif; ?>
+
+        <!-- Phone a Friend Response -->
+        <?php if (isset($_SESSION['phone_friend'])): ?>
+            <div class="phone-response">
+                <h3>📞 Your friend <?php echo $_SESSION['phone_friend']['name']; ?> says:</h3>
+                <div class="friend-message <?php echo $_SESSION['phone_friend']['confidence']; ?>-confidence">
+                    "<?php echo $_SESSION['phone_friend']['response']; ?>"
+                </div>
             </div>
         <?php endif; ?>
 

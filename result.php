@@ -33,13 +33,22 @@ if ($user_answer === $correct_answer) {
     $_SESSION['total_winnings'] += $prize_amount;
     $_SESSION['current_question']++;
     
-    // Reset hint tracking for next question
-    $_SESSION['hint_used'] = false;
+    // Debug output
+    echo "<!-- DEBUG result.php: After increment - current_question = " . $_SESSION['current_question'] . ", total_winnings = " . $_SESSION['total_winnings'] . " -->";
+    
+    // Clear question-specific data for next question (but keep lifeline usage)
     if (isset($_SESSION['hidden_answers'])) {
         unset($_SESSION['hidden_answers']);
     }
+    if (isset($_SESSION['audience_poll'])) {
+        unset($_SESSION['audience_poll']);
+    }
+    if (isset($_SESSION['phone_friend'])) {
+        unset($_SESSION['phone_friend']);
+    }
     
-    // Force session to be saved
+    // Force session to be saved immediately
+    session_commit();
     
     // Check if this was the last question
     if ($_SESSION['current_question'] >= count($questions)) {
@@ -49,7 +58,7 @@ if ($user_answer === $correct_answer) {
     
     // Show correct answer page with option to continue
     $next_question_number = $_SESSION['current_question'] + 1;
-    $next_prize = $questions[$_SESSION['current_question']]['prize'];
+    $next_prize = isset($questions[$_SESSION['current_question']]) ? $questions[$_SESSION['current_question']]['prize'] : 0;
     ?>
     <!DOCTYPE html>
     <html>
