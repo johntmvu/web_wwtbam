@@ -153,11 +153,59 @@ body.game-body {
     box-shadow: 0 0 20px #00ccff;
 }
 
-/* Animations */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+/* 50/50 Hint Styles */
+.hint-container {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.hint-btn {
+    background: linear-gradient(45deg, #ff6b35, #f7931e);
+    border: 2px solid #ff6b35;
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.hint-btn:hover {
+    background: linear-gradient(45deg, #ff8555, #f9a43e);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.hint-used {
+    color: #888;
+    font-style: italic;
+    font-size: 1.1em;
+    background-color: #333;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 2px solid #555;
+}
+
+.hidden-answer {
+    background-color: #222 !important;
+    border-color: #444 !important;
+    color: #666 !important;
+    opacity: 0.4;
+    cursor: not-allowed !important;
+}
+
+.hidden-answer:hover {
+    background-color: #222 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.hidden-answer .label {
+    color: #555 !important;
 }
 
 /* Game Over Page */

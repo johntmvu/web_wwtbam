@@ -8,6 +8,9 @@ if (!isset($_SESSION['username'])) {
 unset($_SESSION['game_started']);
 unset($_SESSION['current_question']);
 unset($_SESSION['total_winnings']);
+// Reset hint tracking
+unset($_SESSION['hint_used']);
+unset($_SESSION['hidden_answers']);
 // Also clear any old session variables that might exist
 unset($_SESSION['score']);
 unset($_SESSION['q']);

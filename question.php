@@ -25,6 +25,40 @@ if ($_SESSION['current_question'] >= count($questions)) {
     exit();
 }
 
+// Initialize 50/50 hint tracking if not set
+if (!isset($_SESSION['hint_used'])) {
+    $_SESSION['hint_used'] = false;
+}
+
+// Handle 50/50 hint request
+if (isset($_POST['use_hint']) && !$_SESSION['hint_used']) {
+    $_SESSION['hint_used'] = true;
+    
+    $current_question = $questions[$_SESSION['current_question']];
+    $correct_answer = $current_question['answer'];
+    
+    // Get all incorrect answer indices
+    $incorrect_indices = [];
+    for ($i = 0; $i < count($current_question['options']); $i++) {
+        if ($i != $correct_answer) {
+            $incorrect_indices[] = $i;
+        }
+    }
+    
+    // Randomly select one incorrect answer to keep visible
+    $keep_incorrect = $incorrect_indices[array_rand($incorrect_indices)];
+    
+    // Store which answers to hide
+    $hide_indices = [];
+    foreach ($incorrect_indices as $index) {
+        if ($index != $keep_incorrect) {
+            $hide_indices[] = $index;
+        }
+    }
+    
+    $_SESSION['hidden_answers'] = $hide_indices;
+}
+
 $current_question = $questions[$_SESSION['current_question']];
 $question_number = $_SESSION['current_question'] + 1;
 ?>
@@ -50,12 +84,34 @@ $question_number = $_SESSION['current_question'] + 1;
             <?php echo $current_question['question']; ?>
         </div>
 
+        <!-- 50/50 Hint Button -->
+        <?php if (!$_SESSION['hint_used']): ?>
+            <div class="hint-container">
+                <form method="post" style="display: inline;">
+                    <button type="submit" name="use_hint" class="hint-btn">
+                        50:50 Hint
+                    </button>
+                </form>
+            </div>
+        <?php else: ?>
+            <div class="hint-container">
+                <span class="hint-used">50:50 Hint Used</span>
+            </div>
+        <?php endif; ?>
+
         <form method="post" action="result.php" class="answer-grid">
-            <?php foreach ($current_question['options'] as $index => $option): ?>
-                <button type="submit" name="answer" value="<?php echo $index; ?>" class="answer-btn">
+            <?php 
+            $hidden_answers = isset($_SESSION['hidden_answers']) ? $_SESSION['hidden_answers'] : [];
+            foreach ($current_question['options'] as $index => $option): 
+                $is_hidden = in_array($index, $hidden_answers);
+            ?>
+                <button type="submit" name="answer" value="<?php echo $index; ?>" 
+                        class="answer-btn <?php echo $is_hidden ? 'hidden-answer' : ''; ?>"
+                        <?php echo $is_hidden ? 'disabled' : ''; ?>>
                     <span class="label">
                         <?php echo chr(65 + $index); ?>:
-                    </span> <?php echo $option; ?>
+                    </span> 
+                    <?php echo $is_hidden ? '[Hidden]' : $option; ?>
                 </button>
             <?php endforeach; ?>
         </form>
