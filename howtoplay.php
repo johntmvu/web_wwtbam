@@ -23,7 +23,6 @@ if (!isset($_SESSION['username'])) {
             <li>Answer all questions correctly to win the top prize!</li>
         </ul>
         <a href="index.php" class="start-btn" style="margin-top:30px; display:block;">Back to Home</a>
-        <a href="logout.php" class="start-btn" style="background:#ff4444; color:#fff; margin-top:15px; display:block;">Logout</a>
     </div>
 </body>
 </html>

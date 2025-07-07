@@ -33,6 +33,12 @@ if ($user_answer === $correct_answer) {
     $_SESSION['total_winnings'] += $prize_amount;
     $_SESSION['current_question']++;
     
+    // Reset hint tracking for next question
+    $_SESSION['hint_used'] = false;
+    if (isset($_SESSION['hidden_answers'])) {
+        unset($_SESSION['hidden_answers']);
+    }
+    
     // Force session to be saved
     
     // Check if this was the last question
