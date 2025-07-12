@@ -5,6 +5,10 @@ if (!isset($_SESSION['username'])) {
     exit();
 }
 $total_winnings = isset($_SESSION['total_winnings']) ? $_SESSION['total_winnings'] : 0;
+if ($total_winnings > 0) {
+    $entry = $_SESSION['username'] . '|' . $total_winnings . "\n";
+    file_put_contents('leaderboard.txt', $entry, FILE_APPEND | LOCK_EX);
+}
 ?>
 <!DOCTYPE html>
 <html>
